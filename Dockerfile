@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build-env
 WORKDIR /app
-RUN https://github.com/mateusz7812/scheduler-service.git
+RUN git clone https://github.com/mateusz7812/scheduler-service.git
 WORKDIR /app/scheduler-service
 RUN dotnet restore
 RUN dotnet publish -c Debug -o out
