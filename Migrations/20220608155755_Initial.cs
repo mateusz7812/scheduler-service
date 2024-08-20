@@ -30,7 +30,7 @@ namespace SchedulerWebApplication.Migrations
                     OutputType = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
                     Name = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
                     Command = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    DefaultEnvironmentVariables = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    DefaultEnvironmentVariables = table.Column<string>(type: "nvarchar(4000)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -105,7 +105,7 @@ namespace SchedulerWebApplication.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TaskId = table.Column<int>(type: "int", nullable: false),
-                    EnvironmentVariables = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    EnvironmentVariables = table.Column<string>(type: "nvarchar(4000)", nullable: true)
                 },
                 constraints: table =>
                 {

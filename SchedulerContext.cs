@@ -7,6 +7,14 @@ using SchedulerWebApplication.Models;
 
 namespace SchedulerWebApplication
 {
+    public static class EntityExtensions
+    {
+        public static void Clear<T>(this DbSet<T> dbSet) where T : class
+        {
+            dbSet.RemoveRange(dbSet);
+        }
+    }
+
     public class SchedulerContext : DbContext
     {
         private readonly ILoggerFactory _loggerFactory;
@@ -31,13 +39,21 @@ namespace SchedulerWebApplication
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            options.UseSqlite();
+            options.UseSqlite("Data Source=LocalDatabase.db");
             //options.UseSqlServer(Environment.GetEnvironmentVariable("SQL_SERVER_CONNECTION_STRING")); //(@$"User Id=system;Password=oracle;Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST={Environment.GetEnvironmentVariable("DB_HOST") ?? "scheduler-oracle-db.westeurope.azurecontainer.io"})(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)))");
             options.UseLoggerFactory(_loggerFactory);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Person>()
+                .Property(p => p.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Task>()
+                .Property(t => t.Id)
+                .ValueGeneratedOnAdd();
+
             modelBuilder.Entity<FlowTask>()
                 .Property(b => b.EnvironmentVariables)
                 .HasConversion(

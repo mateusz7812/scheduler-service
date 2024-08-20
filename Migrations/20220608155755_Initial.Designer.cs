@@ -134,7 +134,7 @@ namespace SchedulerWebApplication.Migrations
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("EnvironmentVariables")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(4000)");
 
                     b.Property<int>("TaskId")
                         .HasColumnType("int");
@@ -262,7 +262,7 @@ namespace SchedulerWebApplication.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("DefaultEnvironmentVariables")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(4000)");
 
                     b.Property<string>("InputType")
                         .HasMaxLength(30)
