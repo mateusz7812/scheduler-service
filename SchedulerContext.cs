@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SchedulerWebApplication.Models;
@@ -54,17 +56,24 @@ namespace SchedulerWebApplication
                 .Property(t => t.Id)
                 .ValueGeneratedOnAdd();
 
+            var dictionariesComparer = new ValueComparer<Dictionary<string, string>>(
+                    (c1, c2) => c1.SequenceEqual(c2),
+                    c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                    c => c.ToDictionary());
+
             modelBuilder.Entity<FlowTask>()
                 .Property(b => b.EnvironmentVariables)
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v),
-                    v => JsonConvert.DeserializeObject<Dictionary<string, string>>(v));
+                    v => JsonConvert.DeserializeObject<Dictionary<string, string>>(v),
+                    dictionariesComparer);
             
             modelBuilder.Entity<Task>()
                 .Property(b => b.DefaultEnvironmentVariables)
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v),
-                    v => JsonConvert.DeserializeObject<Dictionary<string, string>>(v));
+                    v => JsonConvert.DeserializeObject<Dictionary<string, string>>(v),
+                    dictionariesComparer);
 
             modelBuilder.Entity<Person>()
                 .HasMany(t => t.Executors)
@@ -74,32 +83,38 @@ namespace SchedulerWebApplication
             modelBuilder.Entity<Person>()
                 .HasMany<LocalAccount>()
                 .WithOne(t => t.Person)
-                .HasForeignKey(t => t.PersonId);
+                .HasForeignKey(t => t.PersonId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Person>()
                 .HasMany<MicrosoftAccount>()
                 .WithOne(t => t.Person)
-                .HasForeignKey(t => t.PersonId);
+                .HasForeignKey(t => t.PersonId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Executor>()
                 .HasMany(t => t.Statuses)
                 .WithOne()
-                .HasForeignKey(t => t.ExecutorId);
+                .HasForeignKey(t => t.ExecutorId)
+                .OnDelete(DeleteBehavior.Cascade);
             
             modelBuilder.Entity<Person>()
                 .HasMany(t => t.Flows)
                 .WithOne(t => t.Person)
-                .HasForeignKey(t => t.PersonId);
+                .HasForeignKey(t => t.PersonId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Task>()
                 .HasMany(t => t.FlowTasks)
                 .WithOne(t => t.Task)
-                .HasForeignKey(t => t.TaskId);
+                .HasForeignKey(t => t.TaskId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<FlowTask>()
-                .HasOne<Flow>(t => t.Flow)
+                .HasOne(t => t.Flow)
                 .WithOne(t => t.FlowTask)
-                .HasForeignKey<Flow>(t => t.FlowTaskId);
+                .HasForeignKey<Flow>(t => t.FlowTaskId)
+                .OnDelete(DeleteBehavior.Cascade);
             
             modelBuilder.Entity<StartingUp>()
                 .HasKey(p => new {p.PredecessorId, p.SuccessorId});
@@ -108,34 +123,37 @@ namespace SchedulerWebApplication
                 .HasOne(t => t.Predecessor)
                 .WithMany(t => t.Successors)
                 .HasForeignKey(t => t.PredecessorId)    
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<StartingUp>()
                 .HasOne(t => t.Successor)
                 .WithMany(t => t.Predecessors)
                 .HasForeignKey(t => t.SuccessorId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<FlowRun>()
                 .HasOne(f => f.Executor)
                 .WithMany(e => e.FlowRuns)
-                .HasForeignKey(f => f.ExecutorId);
+                .HasForeignKey(f => f.ExecutorId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<FlowRun>()
                 .HasOne(f => f.Flow)
                 .WithMany(e => e.FlowRuns)
                 .HasForeignKey(f => f.FlowId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<FlowTaskStatus>()
                 .HasOne<FlowRun>()
                 .WithMany(f => f.Statuses)
-                .HasForeignKey(e => e.FlowRunId);
+                .HasForeignKey(e => e.FlowRunId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<FlowTaskStatus>()
                 .HasOne<FlowTask>()
                 .WithMany()
-                .HasForeignKey(f => f.FlowTaskId);
+                .HasForeignKey(f => f.FlowTaskId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             /*modelBuilder.Entity<FlowTask>()
                 .HasMany<FlowTask>(t => t.Predecessors)

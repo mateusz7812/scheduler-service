@@ -27,6 +27,7 @@ namespace SchedulerWebApplication
                     )
                 )
                 .AddRouting()
+                .AddEntityFrameworkSqlite()
                 .AddDbContext<SchedulerContext>()
                 .AddGraphQLServer()
                     .AddQueryType<Query>()
@@ -68,57 +69,49 @@ namespace SchedulerWebApplication
                 var context = serviceScope.ServiceProvider.GetRequiredService<SchedulerContext>();
                 //if (context.Database.EnsureCreated())
                 //{
-                    context.Persons.Clear();
-                    context.LocalAccounts.Clear();
-                    context.MicrosoftAccounts.Clear();
                     context.Executors.Clear();
-                    context.Tasks.Clear();
-                    context.FlowTasks.Clear();
-                    context.ExecutorStatuses.Clear();
-                    context.StartingUps.Clear();
-                    context.FlowRuns.Clear();
-                    
+                    context.Persons.Clear();
                     context.SaveChanges();
 
-                    var account = new Person 
+                    var person1 = new Person 
                     { 
                         Login = "testLogin",
                     };
 
                     context.LocalAccounts.Add(new LocalAccount 
                     { 
-                        Person = account, 
+                        Person = person1, 
                         Password = "testPassword" 
                     });
 
                     context.MicrosoftAccounts.Add(new MicrosoftAccount
                     {
-                        Person = account,
+                        Person = person1,
                         MicrosoftAccountId = Guid.Parse("b2c4e305-63ed-431b-baef-bb051f70d749")
                     });
                     
-                    context.Executors.Add(new Executor
+                    var executor1 = context.Executors.Add(new Executor
                     {
-                        Person = account,
+                        Person = person1,
                         Name = "testName",
                         Description = "testDescription"
                     });
                     
                     context.Executors.Add(new Executor
                     {
-                        Person = account,
+                        Person = person1,
                         Name = "testName2",
                         Description = "testDescription2"
                     });
                     
-                    var person = new Person
+                    var person2 = new Person
                     {
                         Login = "testLogin2",
                     };
 
                     context.LocalAccounts.Add(new LocalAccount
                     {
-                        Person = person,
+                        Person = person2,
                         Password = "testPassword2"
                     });
 
@@ -159,35 +152,35 @@ namespace SchedulerWebApplication
                         EnvironmentVariables = new Dictionary<string, string>(){{"text", "Hello test!"}}
                     });
                     
-                    context.ExecutorStatuses.Add(new ExecutorStatus{Date = 123, StatusCode = ExecutorStatusCode.Online, ExecutorId = 1});
-                    context.ExecutorStatuses.Add(new ExecutorStatus{Date = 121, StatusCode = ExecutorStatusCode.Offline, ExecutorId = 1});
-                    context.ExecutorStatuses.Add(new ExecutorStatus{Date = 124, StatusCode = ExecutorStatusCode.Working, ExecutorId = 1});
+                    context.ExecutorStatuses.Add(new ExecutorStatus{Date = 123, StatusCode = ExecutorStatusCode.Online, ExecutorId = executor1.Entity.Id});
+                    context.ExecutorStatuses.Add(new ExecutorStatus{Date = 121, StatusCode = ExecutorStatusCode.Offline, ExecutorId = executor1.Entity.Id});
+                    context.ExecutorStatuses.Add(new ExecutorStatus{Date = 124, StatusCode = ExecutorStatusCode.Working, ExecutorId = executor1.Entity.Id});
 
                     context.SaveChanges();
                     context.StartingUps.Add(new StartingUp
                     {
-                        PredecessorId = 1,
-                        SuccessorId = 2
+                        PredecessorId = flowTask1.Entity.Id,
+                        SuccessorId = flowTask2.Entity.Id
                     });
                     
                     context.StartingUps.Add(new StartingUp
                     {
-                        PredecessorId = 2,
-                        SuccessorId = 3
+                        PredecessorId = flowTask2.Entity.Id,
+                        SuccessorId = flowTask3.Entity.Id
                     });
                     
-                    context.Flows.Add(new Flow
+                    var flow = context.Flows.Add(new Flow
                     {
-                        PersonId = 1,
+                        PersonId = person1.Id,
                         Description = "testDescription",
                         Name = "testName",
-                        FlowTaskId = 1
+                        FlowTaskId = flowTask1.Entity.Id
                     });
                     
                     context.SaveChangesAsync();
 
-                    int flowId = context.Flows.First().Id;
-                    int executorId = context.Executors.First().Id;
+                    int flowId = flow.Entity.Id;
+                    int executorId = executor1.Entity.Id;
                     context.FlowRuns.Add(new FlowRun
                     {
                         RunDate = new DateTime(2012, 10, 20, 10, 15, 21).Ticks,
