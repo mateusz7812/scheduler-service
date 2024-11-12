@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SchedulerWebApplication.Models;
@@ -20,9 +21,13 @@ namespace SchedulerWebApplication
     public class SchedulerContext : DbContext
     {
         private readonly ILoggerFactory _loggerFactory;
-        public SchedulerContext(ILoggerFactory loggerFactory)
+        private IHostEnvironment _appHost;
+
+        public SchedulerContext(ILoggerFactory loggerFactory, DbContextOptions<SchedulerContext> options, IHostEnvironment appHost) : base(options)
         {
             _loggerFactory = loggerFactory;
+            _appHost = appHost;
+            Database.EnsureCreated();
         }
         
         public DbSet<Person> Persons { get; set; }
@@ -41,7 +46,7 @@ namespace SchedulerWebApplication
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            options.UseSqlite("Data Source=LocalDatabase.db");
+            options.UseSqlite($"Data Source={_appHost.ContentRootPath}/LocalDatabase.db");
             //options.UseSqlServer(Environment.GetEnvironmentVariable("SQL_SERVER_CONNECTION_STRING")); //(@$"User Id=system;Password=oracle;Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST={Environment.GetEnvironmentVariable("DB_HOST") ?? "scheduler-oracle-db.westeurope.azurecontainer.io"})(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)))");
             options.UseLoggerFactory(_loggerFactory);
         }

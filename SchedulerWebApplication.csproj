@@ -22,6 +22,8 @@
       </PackageReference>
       <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.8" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.8" />
+      <PackageReference Include="Zipkin4net" Version="1.5.0" />
+      <PackageReference Include="Zipkin4net.middleware.aspnetcore" Version="1.5.0" />
       <!--PackageReference Include="Oracle.EntityFrameworkCore" Version="8.23.50" /-->
     </ItemGroup>
 
